@@ -1,0 +1,76 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+// Looking for ways to speed up your queries, or scale easily with your serverless or edge functions?
+// Try Prisma Accelerate: https://pris.ly/cli/accelerate-init
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model User {
+  id            String       @id @default(uuid())
+  email         String       @unique
+  password      String
+  role          Role         @default(CLIENT)
+  fingerprintId String?      @unique // hash o ID del dispositivo
+  createdAt     DateTime     @default(now())
+  memberships   Membership[]
+  routines      Routine[]
+  accessLogs    AccessLog[]
+}
+
+enum Role {
+  ADMIN
+  TRAINER
+  CLIENT
+}
+
+model AccessLog {
+  id        String   @id @default(uuid())
+  userId    String
+  user      User     @relation(fields: [userId], references: [id])
+  timestamp DateTime @default(now())
+}
+
+model Membership {
+  id        String   @id @default(uuid())
+  userId    String
+  user      User     @relation(fields: [userId], references: [id])
+  startDate DateTime @default(now())
+  endDate   DateTime
+  active    Boolean  @default(true)
+}
+
+model Exercise {
+  id          String   @id @default(uuid())
+  name        String
+  description String?
+  videoUrl    String?
+  routines    RoutineExercise[]
+}
+
+model Routine {
+  id         String       @id @default(uuid())
+  name       String
+  userId     String
+  user       User         @relation(fields: [userId], references: [id])
+  createdAt  DateTime     @default(now())
+  exercises  RoutineExercise[]
+}
+
+model RoutineExercise {
+  id         String    @id @default(uuid())
+  routineId  String
+  exerciseId String
+  sets       Int
+  reps       Int
+
+  routine    Routine   @relation(fields: [routineId], references: [id])
+  exercise   Exercise  @relation(fields: [exerciseId], references: [id])
+}
