@@ -2,7 +2,7 @@ import { NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
 import bcrypt from "bcryptjs";
 
-// Este endpoint espera: email, password, name, (opcional: fingerprintId), (opcional: role)
+// Este crea un nuevo usuario
 export async function POST(req: Request) {
   try {
     const body = await req.json();
@@ -39,7 +39,22 @@ export async function POST(req: Request) {
       { status: 201 }
     );
   } catch (error) {
-    console.error("Error creando usuario:", error);
-    return NextResponse.json({ error: "Error interno del servidor" }, { status: 500 });
+    return NextResponse.json({ error: "Error creando user" }, { status: 500 });
   }
 }
+
+
+// este es get many
+export async function GET(_: Request) {
+  try{
+    const users = await prisma.user.findMany({
+      include: {
+        memberships: true,
+        routines: true,
+        accessLogs: true,
+      },
+    });
+    return NextResponse.json(users, { status: 200 });
+  } catch (error) {
+    return NextResponse.json({ error: "Error get many" }, { status: 500 });
+}}
